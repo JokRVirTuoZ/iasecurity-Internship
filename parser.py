@@ -445,7 +445,7 @@ if __name__ == '__main__':
     tab, log = feature16(tab, log, True)
     tab, log = feature17(tab, log, True)
     tab, log = feature18(tab, log, False)
-    tab, log = feature19(tab, log, True)
+    tab, log = feature19(tab, log, False)
     tab, log = feature20(tab, log, True)
     tab, log = feature21(tab, log, False)
     tab, log = feature22(tab, log, False)
