@@ -179,7 +179,7 @@ def feature10(tab: pd.DataFrame, log: list = [], useful: bool = True, name: str 
                                                                                                       list]:  # Payload Data
     if not useful:
         try:
-            tab.drop(name, axis=1)
+            tab = tab.drop(name, axis=1)
             log.append(f"Feature 10 : {name}, is not useful and is deleted")
         except Exception as e:
             log.append(f"Feature 10 : {name}, an error append : {e}")
@@ -207,7 +207,7 @@ def feature12(tab: pd.DataFrame, log: list = [], useful: bool = True, name: str 
                                                                                                         list]:  # Anomaly Scores
     if useful:
         try:
-            pass
+            tab[name] = tab[name].apply(lambda x: float(x) / 100)
             log.append(f"Feature 12 : {name}, seem good so no change")
         except Exception as e:
             log.append(f"Feature 12 : {name}, an error append : {e}")
@@ -417,8 +417,8 @@ def feature25(tab: pd.DataFrame, log: list = [], useful: bool = True, name: str 
 
 if __name__ == '__main__':
     print(f"Panda : {pd.__version__}")
-    # path = Path(r"C:\Users\antoi\Desktop\test\cybersecurity_attacks.csv")
-    path = None
+    path = Path(r"dataSet/cybersecurity_attacks.csv")
+    #path = None
     log = ["Starting"]
     tab, log, newPath = readCSV(path, log)
     if newPath:
@@ -449,8 +449,8 @@ if __name__ == '__main__':
     tab, log = feature20(tab, log, True)
     tab, log = feature21(tab, log, False)
     tab, log = feature22(tab, log, False)
-    tab, log = feature23(tab, log, True)
-    tab, log = feature24(tab, log, True)
+    tab, log = feature23(tab, log, False)
+    tab, log = feature24(tab, log, False)
     tab, log = feature25(tab, log, True)
 
     print(tab)
