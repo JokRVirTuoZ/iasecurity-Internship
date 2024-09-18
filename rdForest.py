@@ -8,7 +8,7 @@ from sklearn.metrics import accuracy_score, log_loss
 
 # 1. Chargement des données
 # Remplacez 'votre_dataset.csv' par le chemin de votre fichier de données
-df = pd.read_csv('votre_dataset.csv')
+df = pd.read_csv('dataSet/newDataSet.csv')
 
 # 2. Prétraitement des données
 # Supposons que la colonne cible soit 'label' et les autres colonnes soient des caractéristiques
