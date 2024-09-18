@@ -1,3 +1,5 @@
 #file to ignore
-cybersecurity_attacks.csv
-
+newDataset.csv
+dataSetLog.txt
+recherche2.txt
+trains.py
