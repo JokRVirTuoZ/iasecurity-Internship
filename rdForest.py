@@ -19,10 +19,10 @@ y = df['Attack Type']               # Variable cible (DDoS, Intrusion, Malware)
 #y = pd.get_dummies(y).values
 
 # 3. Division des données en ensemble d'entraînement et de test
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=None)
 
 # 4. Entraînement du modèle Random Forest
-rf_model = RandomForestClassifier(n_estimators=100, random_state=42)
+rf_model = RandomForestClassifier(n_estimators=25, random_state=None)
 rf_model.fit(X_train, y_train)
 
 # 5. Évaluation sur l'ensemble de test
