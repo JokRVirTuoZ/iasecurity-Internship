@@ -134,7 +134,7 @@ def feature7(tab: pd.DataFrame, log: list = [], useful: bool = True, name: str =
                                                                                                       list]:  # Packet Length
     if useful:
         try:
-            tab[name] = tab[name].apply(lambda x: float(x) / 100)
+            tab[name] = tab[name].apply(lambda x: float(x) / 2000)
             log.append(f"Feature 7 : {name}, reduce from 0->2000 to 0->20")
         except Exception as e:
             log.append(f"Feature 7 : {name}, an error append : {e}")
