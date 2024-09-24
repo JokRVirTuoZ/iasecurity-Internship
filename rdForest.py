@@ -6,6 +6,7 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.pipeline import Pipeline
 from sklearn.impute import SimpleImputer
+from sklearn.metrics import confusion_matrix
 import matplotlib.pyplot as plt
 import seaborn as sns
 
