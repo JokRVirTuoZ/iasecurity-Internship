@@ -87,6 +87,7 @@ optimizer = optim.Adam(model.parameters(), lr=0.001)
 
 # 5. Simulation d'entraînement
 epochs = 40
+
 train_losses = []
 test_losses = []
 
@@ -180,3 +181,28 @@ ax[1].grid(True)
 
 plt.tight_layout()
 plt.show()
+
+#confusion matrix
+from sklearn.metrics import confusion_matrix
+import seaborn as sns
+
+cm = confusion_matrix(y_test_tensor.cpu().numpy(), predicted.cpu().numpy())
+plt.figure(figsize=(10, 8))
+
+sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=le.classes_, yticklabels=le.classes_)
+plt.xlabel('Predicted')
+plt.ylabel('Actual')
+plt.title('Confusion Matrix')
+plt.show()
+
+
+# 7. Sauvegarde du modèle
+th.save(model.state_dict(), 'model.pth')
+print('Model saved successfully')
+
+#print f1 score
+from sklearn.metrics import f1_score
+f1 = f1_score(y_test_tensor.cpu().numpy(), predicted.cpu().numpy(), average='weighted')
+print(f'F1 Score: {f1:.4f}')
+
+
