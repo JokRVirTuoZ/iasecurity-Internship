@@ -1,105 +1,101 @@
-import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
+import numpy as np
+from fontTools.ttLib.tables.G_D_E_F_ import table_G_D_E_F_
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler, LabelEncoder
-import tensorflow as tf
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Dropout
-from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.callbacks import EarlyStopping
+from tensorflow.keras.layers import Dense
+from tensorflow.keras.utils import to_categorical
+from parser2 import parser2
 
 # 1. Chargement des données
-df = pd.read_csv('dataSet/newDataSet.csv')
+train_data = pd.read_csv("dataSet/KDDTrain+.txt" , sep = "," , encoding = 'utf-8')
+test_data = pd.read_csv("dataSet/KDDTest+.txt" , sep = "," , encoding = 'utf-8')
 
-# 2. Prétraitement des données
-X = df.drop('Attack Type', axis=1)  # Variables explicatives (25 features)
-# y = df['Attack Type']  # Variable cible (DDoS, Intrusion, Malware)
-y = pd.get_dummies(df['Attack Type'], prefix='Attack_Type')
-#TODO ONE-HOT
+columns = (
+    ['duration', 'protocol_type', 'service', 'flag', 'src_bytes', 'dst_bytes', 'land', 'wrong_fragment', 'urgent',
+     'hot',
+     'num_failed_logins', 'logged_in', 'num_compromised', 'root_shell', 'su_attempted', 'num_root',
+     'num_file_creations',
+     'num_shells', 'num_access_files', 'num_outbound_cmds', 'is_host_login', 'is_guest_login', 'count', 'srv_count',
+     'serror_rate', 'srv_serror_rate', 'rerror_rate', 'srv_rerror_rate', 'same_srv_rate', 'diff_srv_rate',
+     'srv_diff_host_rate',
+     'dst_host_count', 'dst_host_srv_count', 'dst_host_same_srv_rate', 'dst_host_diff_srv_rate',
+     'dst_host_same_src_port_rate',
+     'dst_host_srv_diff_host_rate', 'dst_host_serror_rate', 'dst_host_srv_serror_rate', 'dst_host_rerror_rate',
+     'dst_host_srv_rerror_rate', 'attack', 'level'])
+train_data.column = columns
+test_data.column = columns
 
-# Encoder la variable cible (si elle est catégorielle)
-label_encoder = LabelEncoder()
-y = label_encoder.fit_transform(y)
 
-# Normalisation des features (important pour les réseaux de neurones)
+train_data, log_train = parser2(train_data)
+test_data, log_test = parser2(test_data)
+
+# 2. Séparer les features et les labels
+X_train = train_data.iloc[:, :-2]  # Toutes les colonnes sauf les deux dernières (features)
+y_train = train_data.iloc[:, -2]   # Avant-dernière colonne (cible)
+
+X_test = test_data.iloc[:, :-2]    # Toutes les colonnes sauf les deux dernières (features)
+y_test = test_data.iloc[:, -2]     # Avant-dernière colonne (cible)
+
+
+# 3. One-Hot Encoding pour les labels (si Attack Type contient des valeurs comme 0, 1, 2)
+encoder = OneHotEncoder(sparse_output=False)
+y_train = encoder.fit_transform(y_train.values.reshape(-1, 1))
+y_test = encoder.transform(y_test.values.reshape(-1, 1))
+
+# 4. Normalisation des données (car les réseaux de neurones fonctionnent mieux avec des données normalisées)
 scaler = StandardScaler()
-X_scaled = scaler.fit_transform(X)
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
 
-# 3. Division des données en ensemble d'entraînement et de test
-X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=1)
-#TODO balance y_train y_test
-count1 = [0, 0, 0]
-for ycount in y_train:
-
-    match ycount:
-        case 0:
-            count1[0] += 1
-        case 1:
-            count1[1] += 1
-        case 2:
-            count1[2] += 1
-percent1 = [0, 0, 0]
-for foo in range(3):
-    percent1[foo] = 100*count1[foo]/len(y_train)
-count2 = [0, 0, 0]
-for ycount in y_test:
-
-    match ycount:
-        case 0:
-            count2[0] += 1
-        case 1:
-            count2[1] += 1
-        case 2:
-            count2[2] += 1
-percent2 = [0,0,0]
-for foo in range(3):
-    percent2[foo] = 100*count2[foo]/len(y_test)
-
-# 4. Création du modèle de réseau de neurones
+# 5. Construction du modèle pyramidal
 model = Sequential()
 
-# Couche d'entrée et première couche cachée (64 neurones, activation ReLU)
-model.add(Dense(64, input_dim=X_train.shape[1], activation='relu'))
+# Couche d'entrée (nombre de neurones = nombre de features)
+input_dim = X_train.shape[1]  # Nombre de features
 
-# Ajout d'une deuxième couche cachée avec moins de neurones (32 neurones)
-model.add(Dense(32, activation='relu'))
+# Première couche cachée
+model.add(Dense(units=64, activation='relu', input_dim=input_dim))
 
-# Ajout d'une couche cachée supplémentaire pour capturer plus de complexité (16 neurones)
-model.add(Dense(16, activation='relu'))
+# Deuxième couche cachée (réduire le nombre de neurones)
+model.add(Dense(units=32, activation='relu'))
 
-# Couche de sortie (3 neurones pour la classification multi-classes)
-model.add(Dense(4, activation='softmax'))  # 3 classes à prédire: Malware, Intrusion, DDoS
+# Troisième couche cachée
+model.add(Dense(units=16, activation='relu'))
 
-# 5. Compilation du modèle avec une fonction de perte et un optimiseur adaptés
-model.compile(loss='sparse_categorical_crossentropy', optimizer=Adam(learning_rate=0.0001), metrics=['accuracy'])
-#TODO categorical_crossentropy
-# 6. Ajout du Early Stopping pour stopper l'entraînement si le modèle commence à overfitter
-#early_stopping = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
+# Couche de sortie avec softmax (3 classes : Malware, DDoS, Intrusion)
+model.add(Dense(units=3, activation='softmax'))
 
-# 7. Entraînement du modèle sur plusieurs époques avec validation
-# history = model.fit(X_train, y_train, epochs=100, batch_size=32, validation_data=(X_test, y_test), callbacks=[early_stopping], verbose=1)
-history = model.fit(X_train, y_train, epochs=100, batch_size=32, validation_data=(X_test, y_test), verbose=1)
-# 8. Création des graphiques pour visualiser accuracy et loss au fil des époques
-fig, ax = plt.subplots(1, 2, figsize=(14, 6))
+# 6. Compilation du modèle
+model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 
-# Graphique pour Accuracy
-ax[0].plot(history.history['accuracy'], label='Training Accuracy', marker='o')
-ax[0].plot(history.history['val_accuracy'], label='Test Accuracy', marker='x')
-ax[0].set_title('Training vs Test Accuracy')
-ax[0].set_xlabel('Epoch')
-ax[0].set_ylabel('Accuracy')
-ax[0].legend()
-ax[0].grid(True)
+# 7. Entraînement du modèle
+history = model.fit(X_train, y_train, epochs=50, batch_size=32, validation_data=(X_test, y_test))
 
-# Graphique pour Log Loss
-ax[1].plot(history.history['loss'], label='Training Loss', marker='o')
-ax[1].plot(history.history['val_loss'], label='Test Loss', marker='x')
-ax[1].set_title('Training vs Test Loss')
-ax[1].set_xlabel('Epoch')
-ax[1].set_ylabel('Loss')
-ax[1].legend()
-ax[1].grid(True)
+# 8. Évaluation du modèle sur les données de test
+loss, accuracy = model.evaluate(X_test, y_test)
 
-plt.tight_layout()
+print(f'Accuracy on test set: {accuracy}')
+print(f'Loss on test set: {loss}')
+
+# 9. Tracer l'accuracy et la loss sur les epochs
+import matplotlib.pyplot as plt
+
+# Tracer l'accuracy
+plt.plot(history.history['accuracy'], label='Training Accuracy')
+plt.plot(history.history['val_accuracy'], label='Validation Accuracy')
+plt.title('Training and Validation Accuracy')
+plt.xlabel('Epochs')
+plt.ylabel('Accuracy')
+plt.legend()
+plt.show()
+
+# Tracer la loss
+plt.plot(history.history['loss'], label='Training Loss')
+plt.plot(history.history['val_loss'], label='Validation Loss')
+plt.title('Training and Validation Loss')
+plt.xlabel('Epochs')
+plt.ylabel('Loss')
+plt.legend()
 plt.show()
