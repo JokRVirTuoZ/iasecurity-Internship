@@ -62,10 +62,10 @@ class CNN(nn.Module):
         self.pool2 = nn.AdaptiveMaxPool2d((10, 1))  # Deuxième couche de pooling adaptatif
 
         # Fully connected layers
-        self.fc1 = nn.Linear(32 * 10 * 1, 128)  # Ajustement de la taille après pooling
-        self.fc2 = nn.Linear(128, 64)
-        self.fc3 = nn.Linear(64, len(np.unique(y_train)))
-        self.dropout = nn.Dropout(0.2)
+        self.fc1 = nn.Linear(32 * 10 * 1, 128)  # l1=128
+        self.fc2 = nn.Linear(128, 128)          # l2=128
+        self.fc3 = nn.Linear(128, len(np.unique(y_train)))
+        self.dropout = nn.Dropout(0.383)        # Dropout de 0.383
         self.activation = nn.LeakyReLU()
 
     def forward(self, x):
@@ -77,11 +77,11 @@ class CNN(nn.Module):
         x = self.dropout(self.activation(self.fc2(x)))
         x = self.fc3(x)
         return x
-    
+
 # Initialisation du modèle
 model = CNN().to(device)
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.Adam(model.parameters(), lr=0.001)
+optimizer = optim.Adam(model.parameters(), lr=0.000441295)
 
 # Simulation d'entraînement
 epochs = 40
