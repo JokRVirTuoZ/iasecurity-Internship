@@ -20,7 +20,7 @@ train_log_losses = []
 test_log_losses = []
 
 # 3. Division des données en ensemble d'entraînement et de test (test_size fixe)
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=1)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=1)
 
 # 4. Entraînement du modèle Random Forest (réentraîner à chaque époque)
 rf_model = RandomForestClassifier(n_estimators=100, random_state=1)
