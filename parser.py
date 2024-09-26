@@ -29,7 +29,7 @@ def saveCSV(path: Path = None, log: list = [], tab: pd.DataFrame = None) -> [pd.
     if path:
         try:
             dir = pt.dirname(path)
-            dtstpath = pt.join(dir, "newDataSet.csv")
+            dtstpath = pt.join(dir, "dataSet.csv")
             logpath = pt.join(dir, "DataSetLog.txt")
             log.append(f"Sucessfuly created csv and log txt at {dir}")
             tab.to_csv(dtstpath, index=False)
